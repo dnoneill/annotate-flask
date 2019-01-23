@@ -21,7 +21,9 @@ def create_anno():
         filecounter = [name for name in os.listdir(filepath) if id in name]
     else:
         existing_github = requests.get(github_url+"{}".format(filepath)).json()
+        print(existing_github)
         filecounter = [filedata for filedata in existing_github if id in filedata['name'] ]
+        print(filecounter)
     if len(annotation) > 0:
         formated_annotation = {"@context":"http://iiif.io/api/presentation/2/context.json",
         "@type": "sc:AnnotationList", "@id": "%s%s/%s-list.json"% (origin_url, filepath[1:], id) } 
