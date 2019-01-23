@@ -1,2 +1,1 @@
-web: gunicorn annotate.wsgi --log-file -
-
+web: python flaskserver.py
