@@ -38,10 +38,10 @@ def create_anno():
         else:
             full_url = github_url + "/{}".format(list_name)
             sha = ''
-            if len(filecounter) - 1 > len(annotation):
-                for file in filecounter:
-                    data = {'sha': file['sha'], 'message':'delete'}
-                    response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
+            #if len(filecounter) - 1 > len(annotation):
+            #    for file in filecounter:
+            #        data = {'sha': file['sha'], 'message':'delete'}
+            #        response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
             existing = requests.get(full_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
             if 'sha' in existing.keys():
                 sha = existing['sha']
@@ -75,9 +75,9 @@ def create_anno():
         for file in filecounter:
             if github_repo == "":
                 os.remove(os.path.join(filepath, file))
-            else:
-                data = {'sha': file['sha'], 'message':'delete'}
-                response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
+            #else:
+            #    data = {'sha': file['sha'], 'message':'delete'}
+            #    response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
         return jsonify("[]"), 201
     
 @app.route('/annotations/', methods=['DELETE'])
