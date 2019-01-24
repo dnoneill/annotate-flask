@@ -21,7 +21,7 @@ def create_anno():
         filecounter = [name for name in os.listdir(filepath) if id in name]
     else:
         existing_github = requests.get(github_url+"{}".format(filepath)).json()
-        print(existing_github.json())
+        print(existing_github)
         print(requests.get(github_url+"{}".format(filepath)))
         filecounter = [filedata for filedata in existing_github if id in filedata['name'] ]
     if len(annotation) > 0:
