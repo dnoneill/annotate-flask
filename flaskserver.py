@@ -21,9 +21,7 @@ def create_anno():
         filecounter = [name for name in os.listdir(filepath) if id in name]
     else:
         existing_github = requests.get(github_url+"{}".format(filepath)).json()
-        print(existing_github)
         filecounter = [filedata for filedata in existing_github if id in filedata['name'] ]
-        print(filecounter)
     if len(annotation) > 0:
         formated_annotation = {"@context":"http://iiif.io/api/presentation/2/context.json",
         "@type": "sc:AnnotationList", "@id": "%s%s/%s-list.json"% (origin_url, filepath[1:], id) } 
@@ -43,6 +41,7 @@ def create_anno():
             if len(filecounter) - 1 > len(annotation):
                 for file in filecounter:
                     data = {'sha': file['sha'], 'message':'delete'}
+                    print(file['url'])
                     response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
             existing = requests.get(full_url).json()
             if 'sha' in existing.keys():
@@ -53,6 +52,7 @@ def create_anno():
             if sha != '':
                 data['sha'] = sha
             response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token)})
+            print(response.request.headers)
         index = 1
         for anno in annotation:
             if github_repo == "":
@@ -71,6 +71,7 @@ def create_anno():
                 if sha != '':
                     data['sha'] = sha
                 response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token)})
+                print(response.request.headers)
             index += 1
         return jsonify(annotation), 201
     else:
@@ -80,6 +81,7 @@ def create_anno():
             else:
                 data = {'sha': file['sha'], 'message':'delete'}
                 response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
+                print(response.request.headers)
         return jsonify("[]"), 201
     
 @app.route('/annotations/', methods=['DELETE'])
