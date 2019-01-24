@@ -20,9 +20,7 @@ def create_anno():
     if github_repo == "":
         filecounter = [name for name in os.listdir(filepath) if id in name]
     else:
-        existing_github = requests.get(github_url+"{}".format(filepath)).json()
-        print(existing_github)
-        print(requests.get(github_url+"{}".format(filepath)))
+        existing_github = requests.get(github_url+"{}".format(filepath), headers={'Authorization': 'token {}'.format(github_token)}).json()
         filecounter = [filedata for filedata in existing_github if id in filedata['name'] ]
     if len(annotation) > 0:
         formated_annotation = {"@context":"http://iiif.io/api/presentation/2/context.json",
@@ -45,7 +43,7 @@ def create_anno():
                     data = {'sha': file['sha'], 'message':'delete'}
                     print(file['url'])
                     response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
-            existing = requests.get(full_url).json()
+            existing = requests.get(full_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
             if 'sha' in existing.keys():
                 sha = existing['sha']
             message = "write {}".format(list_name)
@@ -63,7 +61,7 @@ def create_anno():
                     outfile.write(json.dumps(anno))
             else:
                 full_url = github_url + "/{}-{}.json".format(file_path, index)
-                existing = requests.get(full_url).json()
+                existing = requests.get(full_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
                 sha = ''
                 if 'sha' in existing.keys():
                     sha = existing['sha']
