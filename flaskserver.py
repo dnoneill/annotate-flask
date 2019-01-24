@@ -41,7 +41,6 @@ def create_anno():
             if len(filecounter) - 1 > len(annotation):
                 for file in filecounter:
                     data = {'sha': file['sha'], 'message':'delete'}
-                    print(file['url'])
                     response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
             existing = requests.get(full_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
             if 'sha' in existing.keys():
@@ -52,7 +51,6 @@ def create_anno():
             if sha != '':
                 data['sha'] = sha
             response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token)})
-            print(response.request.headers)
         index = 1
         for anno in annotation:
             if github_repo == "":
@@ -71,7 +69,6 @@ def create_anno():
                 if sha != '':
                     data['sha'] = sha
                 response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token)})
-                print(response.request.headers)
             index += 1
         return jsonify(annotation), 201
     else:
@@ -81,7 +78,6 @@ def create_anno():
             else:
                 data = {'sha': file['sha'], 'message':'delete'}
                 response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
-                print(response.request.headers)
         return jsonify("[]"), 201
     
 @app.route('/annotations/', methods=['DELETE'])
