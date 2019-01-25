@@ -50,7 +50,10 @@ def create_anno():
             data = {"message":message, "content": base64.b64encode(anno_text)}
             if sha != '':
                 data['sha'] = sha
-            response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
+            if 'content' in existing.keys():
+                existing_anno = json.loads(base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", ""))
+                if (formated_annotation != existing_anno):
+                    response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
         index = 1
         for anno in annotation:
             if github_repo == "":
@@ -68,7 +71,10 @@ def create_anno():
                 data = {"message":message, "content": base64.b64encode(full_anno)}
                 if sha != '':
                     data['sha'] = sha
-                response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
+                if 'content' in existing.keys():
+                    existing_anno = json.loads(base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", ""))
+                    if (anno != existing_anno):
+                        response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
             index += 1
         return jsonify(annotation), 201
     else:
