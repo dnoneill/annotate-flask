@@ -63,7 +63,7 @@ def create_anno():
                 sha = ''
                 if 'sha' in existing.keys():
                     sha = existing['sha']
-                message = "write {}".format(filepath)
+                message = "write {}-{}.json".format(file_path, index)
                 full_anno = "---\nlayout: null\n---\n" + json.dumps(anno)
                 data = {"message":message, "content": base64.b64encode(full_anno)}
                 if sha != '':
