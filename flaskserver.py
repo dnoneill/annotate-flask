@@ -4,6 +4,8 @@ from flask_cors import CORS
 import json, os, glob, requests
 import base64 
 from settings import *
+from bs4 import BeautifulSoup
+import yaml
 
 app = Flask(__name__)
 CORS(app)
@@ -58,21 +60,51 @@ def create_anno():
                 response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
         index = 1
         for anno in annotation:
+            annodata_data = {'tags': [], 'layout': 'searchview', 'listname': list_name.split("/")[-1], 'content': []}
+            annodata_filename = "{}-{}.md".format(id.replace(".json", "").replace(":", ""), index)
+            for resource in anno['resource']:
+                chars = BeautifulSoup(resource['chars'], 'html.parser').get_text()
+                if 'tag' in resource['@type'].lower():
+                    annodata_data['tags'].append(chars.encode("utf-8"))
+                else:
+                    annodata_data['content'].append(chars.encode("utf-8"))
+            content = '\n'.join(annodata_data.pop('content'))
             if github_repo == "":
+                with open(os.path.join("_annotation_data", annodata_filename), "w") as outfile:
+                    outfile.write("---\n")
+                    outfile.write(yaml.dump(annodata_data))
+                    outfile.write("---\n")
+                    outfile.write(content)
                 with open("{}-{}.json".format(file_path, index), 'w') as outfile:
                     outfile.write("---\nlayout: null\n---\n")
                     outfile.write(json.dumps(anno))
             else:
                 full_url = github_url + "/{}-{}.json".format(file_path, index)
+                filename= "{}-{}.md".format(id.replace(".json", "").replace(":", ""), index)
+                annotationdata_url = github_url + "/{}".format(os.path.join("_annotation_data", annodata_filename))
                 existing = requests.get(full_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
+                existing_annodata = requests.get(annotationdata_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
                 sha = ''
+                anno_sha = ''
                 if 'sha' in existing.keys():
                     sha = existing['sha']
+                if 'sha' in existing_annodata.keys():
+                    anno_sha = existing_annodata['sha']
                 message = "write {}-{}.json".format(file_path, index)
                 full_anno = "---\nlayout: null\n---\n" + json.dumps(anno)
+                annodata_message = "write {}".format(os.path.join("_annotation_data", filename))
                 data = {"message":message, "content": base64.b64encode(full_anno)}
+                annodata_yaml = "---\n{}---\n{}".format(yaml.dump(annodata_data), content)
+                annodata_data = {"message":annodata_message, "content": base64.b64encode(annodata_yaml)}
                 if sha != '':
                     data['sha'] = sha
+                if anno_sha != '':
+                    annodata_data['sha'] = anno_sha
+                if 'content' in existing_annodata.keys():
+                    if base64.b64decode(existing_annodata['content']) != annodata_yaml:
+                        response = requests.put(annotationdata_url, data=json.dumps(annodata_data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
+                else:
+                    response = requests.put(annotationdata_url, data=json.dumps(annodata_data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
                 if 'content' in existing.keys():
                     existing_anno = json.loads(base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", ""))
                     if (anno != existing_anno):
