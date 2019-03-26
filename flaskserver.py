@@ -14,6 +14,7 @@ annotations = []
 @app.route('/annotations/', methods=['POST'])
 def create_anno():
     data_object = json.loads(request.data)
+    origin_url = request.headers['Referer']
     key = data_object['key']
     annotation = data_object['json']
     origin_url = request.headers.get('Referer').strip()
@@ -60,7 +61,10 @@ def create_anno():
                 response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
         index = 1
         for anno in annotation:
-            annodata_data = {'tags': [], 'layout': 'searchview', 'listname': list_name.split("/")[-1], 'content': []}
+            styling_dict = "{'image_only': true}"
+            imagescr = '<iiif-annotation annotationurl="{}{}-{}.json" styling="{}"></iiif-annotation>'.format(origin_url, file_path.replace("_", ""), index, styling_dict)
+            annodata_data = {'tags': [], 'layout': 'searchview', 'listname': list_name.split("/")[-1], 'content': [],
+                'imagescr': imagescr}
             annodata_filename = "{}-{}.md".format(id.replace(".json", "").replace(":", ""), index)
             for resource in anno['resource']:
                 chars = BeautifulSoup(resource['chars'], 'html.parser').get_text()
