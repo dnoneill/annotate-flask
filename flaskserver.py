@@ -17,7 +17,6 @@ def create_anno():
     key = data_object['key']
     annotation = data_object['json']
     origin_url = request.headers.get('Referer').strip()
-    print(origin_url)
     id = key.split("/")[-1].replace("_", "-").lower()
     
     if github_repo == "":
@@ -61,8 +60,7 @@ def create_anno():
                 response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
         index = 1
         for anno in annotation:
-            styling_dict = "{'image_only': true}"
-            imagescr = '<iiif-annotation annotationurl="{}{}-{}.json" styling="{}"></iiif-annotation>'.format(origin_url, file_path.replace("_", ""), index, styling_dict)
+            imagescr = '<iiif-annotation annotationurl="{}{}-{}.json" styling="image_only:true"></iiif-annotation>'.format(origin_url, file_path.replace("_", ""), index)
             annodata_data = {'tags': [], 'layout': 'searchview', 'listname': list_name.split("/")[-1], 'content': [],
                 'imagescr': imagescr}
             annodata_filename = "{}-{}.md".format(id.replace(".json", "").replace(":", ""), index)
