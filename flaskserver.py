@@ -17,6 +17,9 @@ def create_anno():
     key = data_object['key']
     annotation = data_object['json']
     origin_url = request.headers.get('Referer').strip()
+    print('Referer info below')
+    print(request.headers.get('Referer'))
+    print(origin_url)
     id = key.split("/")[-1].replace("_", "-").lower()
     
     if github_repo == "":
