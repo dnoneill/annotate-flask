@@ -17,6 +17,7 @@ def create_anno():
     key = data_object['key']
     annotation = data_object['json']
     origin_url = request.headers.get('Referer').strip()
+    print(request.headers['Referer'])
     print('Referer info below')
     print(request.headers.get('Referer'))
     print(origin_url)
