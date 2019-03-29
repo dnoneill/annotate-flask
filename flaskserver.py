@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask import request, render_template
 from flask_cors import CORS
 import json, os, glob, requests
-import base64 
+import base64
 from settings import *
 from bs4 import BeautifulSoup
 import yaml
@@ -17,16 +17,19 @@ def create_anno():
     key = data_object['key']
     annotation = data_object['json']
     origin_url = data_object['originurl']
-    id = key.split("/")[-1].replace("_", "-").lower()
-    
+    id = key.replace("/info.json", "").split("/")[-1].replace("_", "-").lower()
     if github_repo == "":
         filecounter = [name for name in os.listdir(filepath) if id in name]
     else:
         existing_github = requests.get(github_url+"{}".format(filepath), headers={'Authorization': 'token {}'.format(github_token)}).json()
         filecounter = [filedata for filedata in existing_github if id in filedata['name'] ]
     if len(annotation) > 0:
-        formated_annotation = {"@context":"http://iiif.io/api/presentation/2/context.json",
-        "@type": "sc:AnnotationList", "@id": "%s%s/%s-list.json"% (origin_url, filepath[1:], id) } 
+        if 'w3.org' in annotation[0]['@context']:
+            formated_annotation = {"@context":"http://www.w3.org/ns/anno.jsonld",
+            "@type": "AnnotationPage", "id": "%s%s/%s-list.json"% (origin_url, filepath[1:], id) }
+        else:
+            formated_annotation = {"@context":"http://iiif.io/api/presentation/2/context.json",
+            "@type": "sc:AnnotationList", "@id": "%s%s/%s-list.json"% (origin_url, filepath[1:], id) }
         formated_annotation['resources'] = annotation
         file_path = os.path.join(filepath, id.replace(".json", "").replace(":", ""))
         list_name = "{}-list.json".format(file_path)
@@ -64,12 +67,15 @@ def create_anno():
             annodata_data = {'tags': [], 'layout': 'searchview', 'listname': list_name.split("/")[-1], 'content': [],
                 'imagescr': imagescr}
             annodata_filename = "{}-{}.md".format(id.replace(".json", "").replace(":", ""), index)
-            for resource in anno['resource']:
-                chars = BeautifulSoup(resource['chars'], 'html.parser').get_text()
-                if 'tag' in resource['@type'].lower():
+            textdata = anno['resource'] if 'resource' in anno.keys() else [anno['body']]
+            for resource in textdata:
+                chars = BeautifulSoup(resource['chars'], 'html.parser').get_text() if 'chars' in resource.keys() else ''
+                if chars and 'tag' in resource['@type'].lower():
                     annodata_data['tags'].append(chars.encode("utf-8"))
-                else:
+                elif chars:
                     annodata_data['content'].append(chars.encode("utf-8"))
+                else:
+                    annodata_data['content'].append(resource['value'])
             content = '\n'.join(annodata_data.pop('content'))
             if github_repo == "":
                 with open(os.path.join("_annotation_data", annodata_filename), "w") as outfile:
@@ -123,7 +129,7 @@ def create_anno():
             #    data = {'sha': file['sha'], 'message':'delete'}
             #    response = requests.delete(file['url'], headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
         return jsonify("[]"), 201
-    
+
 @app.route('/annotations/', methods=['DELETE'])
 def delete_anno():
     delete_path = os.path.join(filepath, request.data) + ".json"
