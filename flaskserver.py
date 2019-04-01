@@ -134,11 +134,16 @@ def create_anno():
 def delete_anno():
     if request.data and github_repo:
         existing_github = requests.get(github_url+"/{}/{}.json".format(filepath, request.data), headers={'Authorization': 'token {}'.format(github_token)}).json()
+        existing_search = requests.get(github_url+"/_annotation_data/{}.md".format(request.data), headers={'Authorization': 'token {}'.format(github_token)}).json()
         data = {'message': 'delete %s' % request.data, 'sha':existing_github['sha']}
+        search_data = {'message': 'delete %s' % request.data, 'sha':existing_search['sha']}
         requests.delete(github_url+"/{}/{}.json".format(filepath, request.data), headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
+        requests.delete(github_url+"/_annotation_data/{}.md".format(request.data), headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(search_data))
         return "File Removed", 201
     else:
         delete_path = os.path.join(filepath, request.data) + ".json"
+        os.remove(delete_path)
+        search_path = os.path.join('_annotation_data', request.data) + ".md"
         os.remove(delete_path)
         return "File Removed", 201
 
