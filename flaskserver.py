@@ -132,9 +132,15 @@ def create_anno():
 
 @app.route('/annotations/', methods=['DELETE'])
 def delete_anno():
-    delete_path = os.path.join(filepath, request.data) + ".json"
-    os.remove(delete_path)
-    return "File Removed", 201
+    if request.data and github_repo:
+        existing_github = requests.get(github_url+"/{}/{}.json".format(filepath, request.data), headers={'Authorization': 'token {}'.format(github_token)}).json()
+        data = {'message': 'delete %s' % request.data, 'sha':existing_github['sha']}
+        requests.delete(github_url+"/{}/{}.json".format(filepath, request.data), headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(data))
+        return "File Removed", 201
+    else:
+        delete_path = os.path.join(filepath, request.data) + ".json"
+        os.remove(delete_path)
+        return "File Removed", 201
 
 
 if __name__ == "__main__":
