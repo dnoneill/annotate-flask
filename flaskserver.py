@@ -14,10 +14,9 @@ annotations = []
 @app.route('/annotations/', methods=['POST'])
 def create_anno():
     data_object = json.loads(request.data)
-    key = data_object['key']
+    key = data_object['key'].lower()
     annotation = data_object['json']
     origin_url = data_object['originurl']
-    id = key.replace("/info.json", "").split("/")[-1].replace("_", "-").lower()
     if github_repo == "":
         filecounter = [name for name in os.listdir(filepath) if id in name]
     else:
