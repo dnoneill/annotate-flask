@@ -66,7 +66,8 @@ def create_anno():
             annodata_data = {'tags': [], 'layout': 'searchview', 'listname': list_name.split("/")[-1], 'content': [],
                 'imagescr': imagescr}
             annodata_filename = "{}-{}.md".format(id.replace(".json", "").replace(":", ""), index)
-            textdata = anno['resource'] if 'resource' in anno.keys() else [anno['body']]
+            textdata = anno['resource'] if 'resource' in anno.keys() else anno['body']
+            textdata = anno['body'] if type(textdata) == list else [anno['body']]
             for resource in textdata:
                 chars = BeautifulSoup(resource['chars'], 'html.parser').get_text() if 'chars' in resource.keys() else ''
                 if chars and 'tag' in resource['@type'].lower():
