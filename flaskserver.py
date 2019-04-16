@@ -67,7 +67,7 @@ def create_anno():
                 'imagescr': imagescr}
             annodata_filename = "{}-{}.md".format(id.replace(".json", "").replace(":", ""), index)
             textdata = anno['resource'] if 'resource' in anno.keys() else anno['body']
-            textdata = anno['body'] if type(textdata) == list else [anno['body']]
+            textdata = textdata if type(textdata) == list else [textdata]
             for resource in textdata:
                 chars = BeautifulSoup(resource['chars'], 'html.parser').get_text() if 'chars' in resource.keys() else ''
                 if chars and 'tag' in resource['@type'].lower():
@@ -148,13 +148,14 @@ def delete_anno():
             requests.delete(github_url+"/{}/{}".format(filepath, listid), headers={'Authorization': 'token {}'.format(github_token)}, data=json.dumps(list_data))
         return "File Removed", 201
     else:
-        try:
-            delete_path = os.path.join(filepath, id) + ".json"
+        delete_path = os.path.join(filepath, id) + ".json"
+        exists = os.path.isfile(delete_path)
+        if exists:
             os.remove(delete_path)
-        except:
-            print('already removed')
         search_path = os.path.join('_annotation_data', id) + ".md"
-        os.remove(search_path)
+        exists = os.path.isfile(search_path)
+        if exists:
+            os.remove(search_path)
         if request_data['deletelist']:
             list_path = os.path.join(filepath, listid)
             os.remove(list_path)
