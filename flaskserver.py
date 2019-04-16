@@ -72,8 +72,9 @@ def create_anno():
                 chars = BeautifulSoup(resource['chars'], 'html.parser').get_text() if 'chars' in resource.keys() else ''
                 if chars and 'tag' in resource['@type'].lower():
                     annodata_data['tags'].append(chars.encode("utf-8"))
-                elif chars and 'purpose' in resource.keys() and 'tag' in resource['purpose']:
-                    annodata_data['tags'].append(chars.encode("utf-8"))
+                elif 'purpose' in resource.keys() and 'tag' in resource['purpose']:
+                    tags_data = chars if chars else resource['value']
+                    annodata_data['tags'].append(tags_data.encode("utf-8"))
                 elif chars:
                     annodata_data['content'].append(chars.encode("utf-8"))
                 else:
