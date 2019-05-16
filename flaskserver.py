@@ -110,11 +110,9 @@ def writetogithub(filename, annotation, yaml=False):
     if sha != '':
         data['sha'] = sha
     if 'content' in existing.keys():
-        print('before existing_anno')
-        print(base64.b64decode(existing['content']))
-        existing_anno = json.loads(base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", ""))
-        print('after existing_anno')
-        if (formated_annotation != existing_anno):
+        decoded_content = base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", "")
+        existing_anno = decoded_content if yaml else json.loads(decoded_content)
+        if (annotation != existing_anno):
             response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
     else:
         response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
