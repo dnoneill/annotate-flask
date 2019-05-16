@@ -86,9 +86,10 @@ def delete_anno():
 
 @app.route('/write_annotation/', methods=['POST'])
 def write_annotation():
-    print(request.data)
-    writetogithub('requestdata.json', request.data, True)
-    data = json.loads(request.data.decode("string_escape"))
+    print(type(request.data))
+    print(request.data.decode("unicode_escape"))
+    print(type(request.data.decode("unicode_escape")))
+    data = json.loads(request.data.decode("unicode_escape"))
     json_data = eval(data['json'])
     filename = os.path.join('_annotations', data['filename'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
