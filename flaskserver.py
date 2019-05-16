@@ -86,10 +86,7 @@ def delete_anno():
 
 @app.route('/write_annotation/', methods=['POST'])
 def write_annotation():
-    print(type(request.data))
-    print(request.data.decode("unicode_escape"))
-    print(type(request.data.decode("unicode_escape")))
-    data = json.loads(str(request.data.decode("unicode_escape")))
+    data = json.loads(request.data)
     json_data = eval(data['json'])
     filename = os.path.join('_annotations', data['filename'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
@@ -112,7 +109,7 @@ def writetogithub(filename, annotation, yaml=False):
     if 'sha' in existing.keys():
         sha = existing['sha']
     message = "write {}".format(filename)
-    anno_text = annotation if yaml else "---\nlayout: null\n---\n" + json.dumps(annotation)
+    anno_text = annotation if yaml else "---\nlayout: null\n---\n" + json.dumps(annotation).decode("unicode_escape")
     data = {"message":message, "content": base64.b64encode(anno_text)}
     if sha != '':
         data['sha'] = sha
@@ -127,7 +124,7 @@ def writetogithub(filename, annotation, yaml=False):
 def writetofile(filename, annotation):
     with open(filename, 'w') as outfile:
         outfile.write("---\nlayout: null\n---\n")
-        outfile.write(json.dumps(annotation))
+        outfile.write(json.dumps(annotation).decode("unicode_escape"))
 
 def get_search(anno, filename):
     imagescr = '<iiif-annotation annotationurl="/{}" styling="image_only:true"></iiif-annotation>'.format(filename.replace("_", ""))
@@ -137,7 +134,7 @@ def get_search(anno, filename):
     textdata = anno['resource'] if 'resource' in anno.keys() else anno['body']
     textdata = textdata if type(textdata) == list else [textdata]
     for resource in textdata:
-        chars = BeautifulSoup(resource['chars'], 'html.parser').get_text() if 'chars' in resource.keys() else ''
+        chars = BeautifulSoup(resource['chars'].decode("unicode_escape"), 'html.parser').get_text() if 'chars' in resource.keys() else ''
         if chars and 'tag' in resource['@type'].lower():
             annodata_data['tags'].append(chars.encode("utf-8"))
         elif 'purpose' in resource.keys() and 'tag' in resource['purpose']:
