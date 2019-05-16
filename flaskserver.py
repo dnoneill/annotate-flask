@@ -86,6 +86,8 @@ def delete_anno():
 
 @app.route('/write_annotation/', methods=['POST'])
 def write_annotation():
+    print('request here')
+    print(request)
     print(request.data)
 #    data = json.loads(request.data)
 #    json_data = eval(data['json'])
