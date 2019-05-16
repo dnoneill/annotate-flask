@@ -14,6 +14,7 @@ CORS(app)
 annotations = []
 @app.route('/annotations/', methods=['POST'])
 def create_anno():
+    print(request.data)
     data_object = json.loads(request.data)
     id = data_object['key'].lower()
     annotation = data_object['json']
