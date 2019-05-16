@@ -87,6 +87,8 @@ def delete_anno():
 @app.route('/write_annotation/', methods=['POST'])
 def write_annotation():
     data = json.loads(request.data)
+    print(data)
+    print(data['json'])
     json_data = eval(data['json'])
     filename = os.path.join('_annotations', data['filename'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
