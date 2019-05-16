@@ -97,8 +97,8 @@ def write_annotation():
 #    if github_repo == "":
 #        filename = os.path.join('_annotations', data['filename'])
 #        writetofile(filename, data['json'])
-#    
-#    return request.data
+#
+    return request.data
 
 def writetogithub(filename, annotation, yaml=False):
     full_url = github_url + "/{}".format(filename)
