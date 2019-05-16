@@ -14,7 +14,6 @@ CORS(app)
 annotations = []
 @app.route('/annotations/', methods=['POST'])
 def create_anno():
-    print(request.data)
     data_object = json.loads(request.data)
     id = data_object['key'].lower()
     annotation = data_object['json']
@@ -87,6 +86,7 @@ def delete_anno():
 
 @app.route('/write_annotation/', methods=['POST'])
 def write_annotation():
+    print(request.data)
     data = json.loads(request.data)
     json_data = eval(data['json'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
