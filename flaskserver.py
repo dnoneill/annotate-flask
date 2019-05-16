@@ -89,7 +89,7 @@ def write_annotation():
     print(type(request.data))
     print(request.data.decode("unicode_escape"))
     print(type(request.data.decode("unicode_escape")))
-    data = json.loads(request.data.decode("unicode_escape"))
+    data = json.loads(request.data.decode("unicode_escape").encode('utf8'))
     json_data = eval(data['json'])
     filename = os.path.join('_annotations', data['filename'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
