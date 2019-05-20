@@ -143,7 +143,7 @@ def get_search(anno, filename):
         elif chars:
             annodata_data['content'].append(chars.encode("utf-8"))
         elif 'items' in resource.keys():
-        	field = 'value' if 'value' in resource['items'].keys() else 'chars'
+        	field = 'value' if 'value' in resource['items'][0].keys() else 'chars'
         	fieldvalues = [item[field] for item in resource['items']].join(" ")
         	annodata_data['content'].append(fieldvalues)
         else:
