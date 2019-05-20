@@ -135,7 +135,6 @@ def get_search(anno, filename):
     textdata = textdata if type(textdata) == list else [textdata]
     for resource in textdata:
         chars = BeautifulSoup(resource['chars'], 'html.parser').get_text() if 'chars' in resource.keys() else ''
-        print(resource)
         if chars and 'tag' in resource['@type'].lower():
             annodata_data['tags'].append(chars.encode("utf-8"))
         elif 'purpose' in resource.keys() and 'tag' in resource['purpose']:
@@ -143,6 +142,10 @@ def get_search(anno, filename):
             annodata_data['tags'].append(tags_data.encode("utf-8"))
         elif chars:
             annodata_data['content'].append(chars.encode("utf-8"))
+        elif 'items' in resource.keys():
+        	field = 'value' if 'value' in resource['items'].keys() else 'chars'
+        	fieldvalues = [item[field] for item in resource['items']].join(" ")
+        	annodata_data['content'].append(fieldvalues)
         else:
             annodata_data['content'].append(resource['value'])
     content = '\n'.join(annodata_data.pop('content'))
