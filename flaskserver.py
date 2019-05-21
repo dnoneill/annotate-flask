@@ -113,7 +113,7 @@ def writetogithub(filename, annotation, yaml=False):
     data = {"message":message, "content": base64.b64encode(anno_text)}
     if sha != '':
         data['sha'] = sha
-    print(existing.keys())
+    print(filename)
     if 'content' in existing.keys():
         
         decoded_content = base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", "")
@@ -123,6 +123,7 @@ def writetogithub(filename, annotation, yaml=False):
             response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
     else:
         response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
+        print(response)
 
 def writetofile(filename, annotation):
     with open(filename, 'w') as outfile:
