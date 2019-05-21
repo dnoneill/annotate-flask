@@ -104,7 +104,6 @@ def write_annotation():
 
 def writetogithub(filename, annotation, yaml=False):
     full_url = github_url + "/{}".format(filename)
-    print(full_url)
     sha = ''
     existing = requests.get(full_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
     if 'sha' in existing.keys():
@@ -114,9 +113,12 @@ def writetogithub(filename, annotation, yaml=False):
     data = {"message":message, "content": base64.b64encode(anno_text)}
     if sha != '':
         data['sha'] = sha
+    print(existing.keys())
     if 'content' in existing.keys():
+        
         decoded_content = base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", "")
         existing_anno = decoded_content if yaml else json.loads(decoded_content)
+        print(decoded_content == existing_anno)
         if (annotation != existing_anno):
             response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
     else:
