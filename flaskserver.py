@@ -89,7 +89,8 @@ def write_annotation():
     data = json.loads(request.data)
     json_data = data['json']
     filename = os.path.join('_annotations', data['filename'])
-    if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
+    typefield = [item for item in json_data if 'type' in item][0]
+    if 'list' in json_data[typefield].lower() or 'page' in json_data[typefield].lower():
         for index, anno in enumerate(json_data['resources'], start=1):
             single_filename = filename.replace('-list.json', '-{}.json'.format(index))
             get_search(anno, single_filename)
@@ -113,17 +114,14 @@ def writetogithub(filename, annotation, yaml=False):
     data = {"message":message, "content": base64.b64encode(anno_text)}
     if sha != '':
         data['sha'] = sha
-    print(filename)
     if 'content' in existing.keys():
         
         decoded_content = base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", "")
         existing_anno = decoded_content if yaml else json.loads(decoded_content)
-        print(decoded_content == existing_anno)
         if (annotation != existing_anno):
             response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
     else:
         response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
-        print(response.content)
 
 def writetofile(filename, annotation):
     with open(filename, 'w') as outfile:
