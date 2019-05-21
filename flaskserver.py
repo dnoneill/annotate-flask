@@ -123,7 +123,7 @@ def writetogithub(filename, annotation, yaml=False):
             response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
     else:
         response = requests.put(full_url, data=json.dumps(data),  headers={'Authorization': 'token {}'.format(github_token), 'charset': 'utf-8'})
-        print(response)
+        print(response.content)
 
 def writetofile(filename, annotation):
     with open(filename, 'w') as outfile:
