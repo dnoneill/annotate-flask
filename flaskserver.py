@@ -104,6 +104,7 @@ def write_annotation():
 
 def writetogithub(filename, annotation, yaml=False):
     full_url = github_url + "/{}".format(filename)
+    print(full_url)
     sha = ''
     existing = requests.get(full_url, headers={'Authorization': 'token {}'.format(github_token)}).json()
     if 'sha' in existing.keys():
@@ -144,7 +145,7 @@ def get_search(anno, filename):
             annodata_data['content'].append(chars.encode("utf-8"))
         elif 'items' in resource.keys():
         	field = 'value' if 'value' in resource['items'][0].keys() else 'chars'
-        	fieldvalues = " ".join([item[field].decode("utf-8") for item in resource['items']])
+        	fieldvalues = " ".join([item[field].encode("utf-8") for item in resource['items']])
         	annodata_data['content'].append(fieldvalues)
         else:
             annodata_data['content'].append(resource['value'])
