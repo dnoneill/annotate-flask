@@ -39,7 +39,7 @@ def create_anno():
             writetogithub(list_name, formated_annotation)
         index = 1
         for anno in annotation:
-            filename = "{}-{}.json".format(file_path, index)
+            filename = "{}-{:03}.json".format(file_path, index)
             annodata_data = get_search(anno, filename, origin_url)
             if github_repo == "":
                 writetofile(filename, anno)
@@ -91,7 +91,7 @@ def write_annotation():
     filename = os.path.join('_annotations', data['filename'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
         for index, anno in enumerate(json_data['resources'], start=1):
-            single_filename = filename.replace('-list.json', '-{}.json'.format(index))
+            single_filename = filename.replace('-list.json', '-{:03}.json'.format(index))
             get_search(anno, single_filename, '')
             writetogithub(single_filename, anno)
     else:
