@@ -40,7 +40,7 @@ def create_anno():
         index = 1
         for anno in annotation:
             filename = "{}-{}.json".format(file_path, index)
-            annodata_data = get_search(anno, filename)
+            annodata_data = get_search(anno, filename, origin_url)
             if github_repo == "":
                 writetofile(filename, anno)
             else:
@@ -89,14 +89,13 @@ def write_annotation():
     data = json.loads(request.data)
     json_data = data['json']
     filename = os.path.join('_annotations', data['filename'])
-    typefield = [item for item in json_data if 'type' in item][0]
-    if 'list' in json_data[typefield].lower() or 'page' in json_data[typefield].lower():
+    if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
         for index, anno in enumerate(json_data['resources'], start=1):
             single_filename = filename.replace('-list.json', '-{}.json'.format(index))
-            get_search(anno, single_filename)
+            get_search(anno, single_filename, '')
             writetogithub(single_filename, anno)
     else:
-        get_search(json_data, data['filename'])
+        get_search(json_data, data['filename'], '')
     if github_repo == "":
         writetofile(filename, data['json'])
     else:
@@ -115,7 +114,6 @@ def writetogithub(filename, annotation, yaml=False):
     if sha != '':
         data['sha'] = sha
     if 'content' in existing.keys():
-        
         decoded_content = base64.b64decode(existing['content']).replace("---\nlayout: null\n---\n", "")
         existing_anno = decoded_content if yaml else json.loads(decoded_content)
         if (annotation != existing_anno):
@@ -128,8 +126,8 @@ def writetofile(filename, annotation):
         outfile.write("---\nlayout: null\n---\n")
         outfile.write(json.dumps(annotation))
 
-def get_search(anno, filename):
-    imagescr = '<iiif-annotation annotationurl="/{}" styling="image_only:true"></iiif-annotation>'.format(filename.replace("_", ""))
+def get_search(anno, filename, origin_url):
+    imagescr = '<iiif-annotation annotationurl="{}/{}" styling="image_only:true"></iiif-annotation>'.format(origin_url, filename.replace("_", ""))
     listname = "{}-list.json".format(filename.split("/")[-1].rsplit('-', 1)[0])
     annodata_data = {'tags': [], 'layout': 'searchview', 'listname': listname, 'content': [], 'imagescr': imagescr}
     annodata_filename = os.path.join("_annotation_data", filename.split('/')[-1].replace('.json', '.md'))
@@ -145,10 +143,10 @@ def get_search(anno, filename):
         elif chars:
             annodata_data['content'].append(chars.encode("utf-8"))
         elif 'items' in resource.keys():
-        	field = 'value' if 'value' in resource['items'][0].keys() else 'chars'
-        	fieldvalues = " ".join([item[field].encode("utf-8") for item in resource['items']])
-        	annodata_data['content'].append(fieldvalues)
-        else:
+            field = 'value' if 'value' in resource['items'][0].keys() else 'chars'
+            fieldvalues = " ".join([item[field].encode("utf-8") for item in resource['items']])
+            annodata_data['content'].append(fieldvalues)
+        elif 'value' in resource:
             annodata_data['content'].append(resource['value'])
     content = '\n'.join(annodata_data.pop('content'))
     if github_repo == "":
