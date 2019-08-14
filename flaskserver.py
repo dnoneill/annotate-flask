@@ -88,13 +88,14 @@ def delete_anno():
 def write_annotation():
     data = json.loads(request.data)
     json_data = data['json']
-    filename = os.path.join('_annotations', data['filename'])
+    file = '_annotations' if data['type'] == 'annotation' else '_ranges'
+    filename = os.path.join(file, data['filename'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
         for index, anno in enumerate(json_data['resources'], start=1):
             single_filename = filename.replace('-list.json', '-{:03}.json'.format(index))
             get_search(anno, single_filename, '')
             writetogithub(single_filename, anno)
-    else:
+    elif data['type'] == 'annotation':
         get_search(json_data, data['filename'], '')
     if github_repo == "":
         writetofile(filename, data['json'])
