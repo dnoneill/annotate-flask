@@ -56,7 +56,7 @@ def create_anno():
 @app.route('/annotations/', methods=['DELETE'])
 def delete_anno():
     request_data = json.loads(request.data)
-    id = request_data['id']
+    id = "{:03}".format(request_data['id'])
     listid = request_data['id'].rsplit('-',1)[0] + "-list.json"
     if request.data and github_repo:
         existing_github = requests.get(github_url+"/{}/{}.json".format(filepath, id), headers={'Authorization': 'token {}'.format(github_token)}).json()
