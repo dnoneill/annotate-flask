@@ -20,28 +20,32 @@ def create_anno():
     data_object = response['json']
     list_file_path = get_list_filepath(data_object)
     uniqid = str(uuid.uuid1())
-    data_object['@id'] = "{}{}".format(origin_url, uniqid)
-    updatelistdata(list_file_path, data_object)
+    data_object['@id'] = "{}{}.json".format(origin_url, uniqid)
+    cleanobject = cleananno(data_object)
+    updatelistdata(list_file_path, cleanobject)
     file_path = os.path.join(filepath, uniqid) + '.json'
-    writeannos(file_path, data_object)
+    writeannos(file_path, cleanobject)
     return jsonify(data_object), 201
 
 @app.route('/update_annotations/', methods=['POST'])
 def update_anno():
     response = json.loads(request.data)
     data_object = response['json']
-    id = response['id'].replace(origin_url, '')
-    file_path = os.path.join(filepath, id) + '.json'
-    list_file_path = get_list_filepath(data_object)
-    writeannos(file_path, data_object)
-    newlist = updatelistdata(list_file_path, data_object)
+    id = data_object['@id'].split('/')[-1].replace('.json', '') + '.json'
+    origin_url_id = "{}{}".format(origin_url, id)
+    data_object['@id'] =  origin_url_id if data_object['@id'] != origin_url_id else data_object['@id']
+    cleanobject = cleananno(data_object)
+    file_path = os.path.join(filepath, id)
+    list_file_path = get_list_filepath(cleanobject)
+    writeannos(file_path, cleanobject)
+    newlist = updatelistdata(list_file_path, cleanobject)
     return jsonify(data_object), 201
 
 @app.route('/delete_annotations/', methods=['DELETE', 'POST'])
 def delete_anno():
     response = json.loads(request.data)
-    id = response['id'].replace(origin_url, '')
-    deletefiles = [os.path.join(filepath, id) + '.json', os.path.join(search_filepath, id) + '.md']
+    id = response['id'].split('/')[-1].replace('.json', '') + '.json'
+    deletefiles = [os.path.join(filepath, id), os.path.join(search_filepath, id).replace('.json', '.md')]
     list_file_path = get_list_filepath(str(response['listuri']))
     listlength = updatelistdata(list_file_path, {'@id': response['id'], 'delete':  True})
     if listlength <= 0:
@@ -57,11 +61,23 @@ def write_annotation():
     filename = os.path.join(file, data['filename'])
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
         for anno in json_data['resources']:
-            id = anno['@id'].replace(origin_url, '')
+            id = anno['@id'].split('/')[-1].replace('.json', '') + '.json'
             single_filename = os.path.join(file, id)
             writeannos(single_filename, anno)
     writeannos(filename, json_data)
     return request.data
+
+def cleananno(data_object):
+    print(data_object)
+    field = 'resource' if 'resource' in data_object.keys() else 'body'
+    charfield = 'chars' if 'resource' in data_object.keys() else 'value'
+    if field in data_object.keys():
+        for item in data_object[field]:
+            replace = re.finditer(r'&lt;iiif-(.*?)&gt;&lt;\/iiif-(.*?)&gt;', item[charfield])
+            for rep in replace:
+                replacestring = rep.group().replace("&lt;","<").replace("&gt;", ">").replace("&quot;", '"')
+                item[charfield] =  item[charfield].replace(rep.group(), replacestring)
+    return data_object
 
 def delete_annos(annolist):
     for anno in annolist:
@@ -100,14 +116,14 @@ def get_list_data(filepath):
     if github_repo == "":
         if os.path.exists(filepath):
             filecontents = open(filepath).read()
-            jsoncontent = json.loads(filecontents.split("---\n")[-1])
+            jsoncontent = json.loads(filecontents.split("---")[-1].strip())
             return jsoncontent
         else:
             return False
     else:
         existing = github_get_existing(filepath)
         if 'content' in existing.keys():
-            content = base64.b64decode(existing['content']).split("---\n")[-1]
+            content = base64.b64decode(existing['content']).split("---")[-1].strip()
             jsoncontent = json.loads(content)
             return jsoncontent
         else:
@@ -115,9 +131,9 @@ def get_list_data(filepath):
 
 def updatelistdata(list_file_path, newannotation):
     listdata = get_list_data(list_file_path)
-    newannoid = newannotation['@id']
+    newannoid = newannotation['@id'].split('/')[-1]
     if listdata:
-        listindex = [i for i, res in enumerate(listdata['resources']) if res['@id'] == newannoid ]
+        listindex = [i for i, res in enumerate(listdata['resources']) if res['@id'].split('/')[-1] == newannoid ]
         listindex = listindex[0] if len(listindex) > 0 else None
         if 'delete' in newannotation.keys() and listindex != None:
             del listdata['resources'][listindex]
@@ -190,7 +206,7 @@ def writetofile(filename, annotation, yaml=False):
         outfile.write(anno_text)
 
 def get_search(anno, filename):
-    imagescr = '<iiif-annotation annotationurl="{}.json" styling="image_only:true"></iiif-annotation>'.format(anno['@id'])
+    imagescr = '<iiif-annotation annotationurl="{}" styling="image_only:true"></iiif-annotation>'.format(anno['@id'])
     listname = get_list_filepath(anno).split('/')[-1]
     annodata_data = {'tags': [], 'layout': 'searchview', 'listname': listname, 'content': [], 'imagescr': imagescr, 'datecreated':'', 'datemodified': ''}
     if 'oa:annotatedAt' in anno.keys():
@@ -201,7 +217,7 @@ def get_search(anno, filename):
         annodata_data['datemodified'] = encodedecode(anno['oa:serializedAt'])
     if 'modified' in anno.keys():
         annodata_data['datemodified'] = encodedecode(anno['modified'])
-    annodata_filename = os.path.join(search_filepath, filename.split('/')[-1].replace('.json', '.md'))
+    annodata_filename = os.path.join(search_filepath, filename.split('/')[-1].replace('.json', '')) + '.md'
     textdata = anno['resource'] if 'resource' in anno.keys() else anno['body']
     textdata = textdata if type(textdata) == list else [textdata]
     for resource in textdata:
