@@ -69,7 +69,7 @@ def write_annotation():
             single_filename = os.path.join(file, id)
             writeannos(single_filename, anno)
     writeannos(filename, json_data)
-    return request.data
+    return jsonify({"Annotations Written": True}), 201
 
 def cleananno(data_object):
     field = 'resource' if 'resource' in data_object.keys() else 'body'
