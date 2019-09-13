@@ -31,7 +31,7 @@ def create_anno():
 def update_anno():
     response = json.loads(request.data)
     data_object = response['json']
-    id = data_object['@id'].split('/')[-1].replace('.json', '') + '.json'
+    id = cleanid(data_object['@id'])
     origin_url_id = "{}{}".format(origin_url, id)
     data_object['@id'] =  origin_url_id if data_object['@id'] != origin_url_id else data_object['@id']
     cleanobject = cleananno(data_object)
@@ -44,7 +44,7 @@ def update_anno():
 @app.route('/delete_annotations/', methods=['DELETE', 'POST'])
 def delete_anno():
     response = json.loads(request.data)
-    id = response['id'].split('/')[-1].replace('.json', '') + '.json'
+    id = cleanid(response['id'])
     deletefiles = [os.path.join(filepath, id), os.path.join(search_filepath, id).replace('.json', '.md')]
     list_file_path = get_list_filepath(str(response['listuri']))
     listlength = updatelistdata(list_file_path, {'@id': response['id'], 'delete':  True})
@@ -59,16 +59,19 @@ def write_annotation():
     json_data = data['json']
     file = filepath if data['type'] == 'annotation' else '_ranges'
     filename = os.path.join(file, data['filename'])
+    for id in data['deleteids']:
+        fileid = cleanid(id)
+        deletefiles = [os.path.join(filepath, fileid), os.path.join(search_filepath, fileid).replace('.json', '.md')]
+        delete_annos(deletefiles)
     if 'list' in json_data['@type'].lower() or 'page' in json_data['@type'].lower():
         for anno in json_data['resources']:
-            id = anno['@id'].split('/')[-1].replace('.json', '') + '.json'
+            id = cleanid(anno['@id'])
             single_filename = os.path.join(file, id)
             writeannos(single_filename, anno)
     writeannos(filename, json_data)
     return request.data
 
 def cleananno(data_object):
-    print(data_object)
     field = 'resource' if 'resource' in data_object.keys() else 'body'
     charfield = 'chars' if 'resource' in data_object.keys() else 'value'
     if field in data_object.keys():
@@ -78,6 +81,9 @@ def cleananno(data_object):
                 replacestring = rep.group().replace("&lt;","<").replace("&gt;", ">").replace("&quot;", '"')
                 item[charfield] =  item[charfield].replace(rep.group(), replacestring)
     return data_object
+
+def cleanid(id):
+    return id.split('/')[-1].replace('.json', '') + '.json'
 
 def delete_annos(annolist):
     for anno in annolist:
