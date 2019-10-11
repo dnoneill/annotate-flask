@@ -104,7 +104,7 @@ def get_list_filepath(data_object):
     else:
         targetid = data_object['target']['id']
     regex = re.compile('[0-9]')
-    numbitems = [item for item in targetid.split('/') if bool(regex.search(item)) and len(item) > 2]
+    numbitems = [item for item in targetid.split('/') if bool(regex.search(item)) and len(item) > 2 and ':5555' not in item]
     targetid = '-'.join(numbitems) if len(numbitems) > 0 else targetid
     targetid = targetid.split("#xywh")[0]
     listid = targetid.split('/')[-1].replace("_", "-").replace(":", "").replace(".json", "").replace(".", "").lower()
